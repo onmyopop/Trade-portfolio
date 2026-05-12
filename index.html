@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>พอร์ตลงทุน</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --surface3: #22223a;
+    --border: #2a2a40;
+    --green: #00d4a0;
+    --green-dim: rgba(0,212,160,0.12);
+    --red: #ff4d6d;
+    --red-dim: rgba(255,77,109,0.12);
+    --gold: #e6a817;
+    --gold-dim: rgba(245,200,66,0.12);
+    --blue: #4d9fff;
+    --blue-dim: rgba(77,159,255,0.12);
+    --text: #e8e8f0;
+    --text2: #8888a8;
+    --text3: #55556a;
+    --nav-bg: rgba(10,10,15,0.92);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans Thai', sans-serif;
+  }
+
+  html.light {
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --surface2: #f5f6fa;
+    --surface3: #e8eaf0;
+    --border: #dde0ea;
+    --green: #00a87e;
+    --green-dim: rgba(0,168,126,0.1);
+    --red: #e8294a;
+    --red-dim: rgba(232,41,74,0.1);
+    --gold: #c4860a;
+    --gold-dim: rgba(196,134,10,0.1);
+    --blue: #2478d4;
+    --blue-dim: rgba(36,120,212,0.1);
+    --text: #1a1a2e;
+    --text2: #5a5a7a;
+    --text3: #9090b0;
+    --nav-bg: rgba(240,242,245,0.92);
+  }
+
+  *, *::before, *::after {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    left: -20%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,212,160,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--nav-bg);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px; height: 56px;
+    gap: 8px;
+  }
+  .nav-title { font-size: 16px; font-weight: 600; letter-spacing: 0.02em; flex: 1; }
+  .nav-title span { color: var(--green); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 6px 16px; border-radius: 20px; font-size: 13px;
+    font-family: var(--sans); font-weight: 500;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--text2); transition: all 0.2s;
+  }
+  .nav-tab.active { background: var(--green); color: #000; }
+  .nav-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  /* PAGES */
+  .page { display: none; padding: 24px; max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .page.active { display: block; }
+
+  /* SUMMARY CARD */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-card::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--green), transparent);
+  }
+  .summary-label { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+  .summary-value {
+    font-family: var(--mono); font-size: 36px; font-weight: 600;
+    letter-spacing: -0.02em; line-height: 1;
+    color: var(--text);
+  }
+  .summary-value .currency { font-size: 16px; color: var(--text2); margin-left: 4px; }
+  .summary-goal { font-size: 12px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+  .progress-bar {
+    margin: 16px 0 12px;
+    height: 6px; background: var(--surface3); border-radius: 99px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--green), #00ffcc);
+    border-radius: 99px; transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
+    min-width: 2px;
+  }
+  .progress-pct { font-size: 11px; color: var(--text2); font-family: var(--mono); }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .summary-stat { background: var(--surface2); border-radius: 12px; padding: 12px; }
+  .stat-label { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-val { font-family: var(--mono); font-size: 15px; font-weight: 600; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.gold { color: var(--gold); }
+  .exchange-rate {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 14px; padding: 10px 14px;
+    background: var(--blue-dim); border: 1px solid rgba(77,159,255,0.2);
+    border-radius: 10px; font-size: 12px; color: var(--blue); font-family: var(--mono);
+  }
+  .exchange-rate .flag { font-size: 16px; }
+
+  /* ASSET LIST */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; margin-top: 24px;
+  }
+  .section-title { font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
+  .section-count { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+  .asset-list { display: flex; flex-direction: column; gap: 8px; }
+  .asset-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+  }
+  .asset-item:hover { border-color: var(--green); background: var(--surface2); transform: translateY(-1px); }
+  .asset-row { display: flex; align-items: flex-start; gap: 12px; }
+  .asset-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0;
+  }
+  .asset-info { flex: 1; min-width: 0; }
+  .asset-name { font-size: 15px; font-weight: 600; }
+  .asset-type { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .asset-alloc { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+  .asset-right { text-align: right; flex-shrink: 0; }
+  .asset-value { font-family: var(--mono); font-size: 15px; font-weight: 600; }
+  .asset-pnl {
+    font-size: 12px; font-family: var(--mono); font-weight: 500; margin-top: 3px;
+  }
+  .asset-pnl.green { color: var(--green); }
+  .asset-pnl.red { color: var(--red); }
+
+  /* Expanded detail */
+  .asset-detail {
+    display: none; margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .asset-item.expanded .asset-detail { display: block; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .detail-cell { background: var(--surface2); border-radius: 8px; padding: 10px; }
+  .detail-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+  .detail-value { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+  .transactions-title { font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .tx-list { display: flex; flex-direction: column; gap: 6px; }
+  .tx-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2); border-radius: 8px; padding: 8px 10px;
+  }
+  .tx-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px;
+    text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0;
+  }
+  .tx-badge.buy { background: var(--green-dim); color: var(--green); }
+  .tx-badge.sell { background: var(--red-dim); color: var(--red); }
+  .tx-info { flex: 1; font-size: 12px; color: var(--text2); font-family: var(--mono); }
+  .tx-date { font-size: 11px; color: var(--text3); flex-shrink: 0; font-family: var(--mono); }
+  .asset-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-edit, .btn-delete, .btn-add-tx, .btn-nav-update {
+    flex: 1; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; font-family: var(--sans); transition: all 0.15s;
+  }
+  .btn-nav-update { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+  .btn-nav-update:hover { background: var(--gold); color: #000; }
+  .btn-edit { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(77,159,255,0.3); }
+  .btn-edit:hover { background: var(--blue); color: #000; }
+  .btn-delete { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+  .btn-delete:hover { background: var(--red); color: #fff; }
+  .btn-add-tx { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,212,160,0.3); }
+  .btn-add-tx:hover { background: var(--green); color: #000; }
+
+  /* ADD PAGE */
+  .add-page-header { margin-bottom: 24px; }
+  .add-page-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .add-page-header p { font-size: 13px; color: var(--text2); }
+  .type-picker { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .type-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 10px; text-align: center;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .type-btn:hover, .type-btn.selected { border-color: var(--green); background: var(--green-dim); }
+  .type-btn .icon { font-size: 28px; margin-bottom: 8px; }
+  .type-btn .label { font-size: 13px; font-weight: 600; }
+  .type-btn .sub { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+  }
+  .form-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  label { font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+  input, select {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 14px; color: var(--text); font-size: 14px;
+    font-family: var(--sans); outline: none; transition: border-color 0.15s;
+    appearance: none;
+  }
+  input:focus, select:focus { border-color: var(--green); }
+  input[readonly] { color: var(--text2); cursor: default; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-results {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    max-height: 240px; overflow-y: auto; display: none;
+  }
+  .autocomplete-results.open { display: block; }
+  .ac-item {
+    padding: 10px 14px; cursor: pointer; transition: background 0.1s;
+    display: flex; flex-direction: column;
+  }
+  .ac-item:hover { background: var(--surface3); }
+  .ac-name { font-size: 13px; font-weight: 600; }
+  .ac-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .calc-preview {
+    background: var(--green-dim); border: 1px solid rgba(0,212,160,0.25);
+    border-radius: 10px; padding: 12px 14px; margin-top: 12px;
+    font-size: 13px; color: var(--green); font-family: var(--mono);
+  }
+  .calc-preview strong { font-size: 18px; display: block; margin-top: 4px; }
+  .btn-submit {
+    width: 100%; padding: 14px; background: var(--green); color: #000;
+    border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+    font-family: var(--sans); cursor: pointer; margin-top: 20px;
+    transition: all 0.15s; letter-spacing: 0.02em;
+  }
+  .btn-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* EDIT MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    overflow-y: auto; padding: 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-overlay.open { display: block; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px; width: 100%; max-width: 420px;
+    margin: 0 auto;
+  }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; padding-bottom: 8px; }
+
+  /* CONFIRM DIALOG */
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+    padding: 24px; overflow-y: auto;
+  }
+  .confirm-overlay.open { display: block; }
+  .confirm-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px; width: 100%; max-width: 360px;
+    margin: 40% auto 0;
+  }
+  .confirm-box h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .confirm-box p { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .btn-confirm-cancel {
+    flex: 1; padding: 12px; background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 600;
+    font-family: var(--sans); cursor: pointer;
+  }
+  .btn-confirm-ok {
+    flex: 1; padding: 12px; background: var(--red); color: #fff;
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+    font-family: var(--sans); cursor: pointer;
+  }
+  .btn-cancel {
+    flex: 1; padding: 12px; background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 600;
+    font-family: var(--sans); cursor: pointer;
+  }
+  .btn-save {
+    flex: 1; padding: 12px; background: var(--green); color: #000;
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+    font-family: var(--sans); cursor: pointer;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 20px; font-size: 13px; font-weight: 500;
+    z-index: 300; transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text3);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state p { font-size: 14px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  .theme-toggle {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+    transition: transform 0.3s ease, background 0.25s;
+  }
+  .theme-toggle:hover { transform: rotate(20deg) scale(1.1); }
+
+  .asset-tab {
+    display: flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2);
+    font-family: var(--sans); transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .asset-tab:hover { color: var(--text); border-color: var(--text3); }
+  .asset-tab.active { background: var(--green); color: #000; border-color: var(--green); }
+  .asset-tab .tab-count {
+    background: rgba(0,0,0,0.15); border-radius: 99px;
+    padding: 1px 6px; font-size: 10px; font-weight: 700;
+  }
+  .asset-tab.active .tab-count { background: rgba(0,0,0,0.2); }
+
+  /* Loading spinner */
+  .loading-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); animation: pulse 1.2s infinite;
+    margin-right: 6px;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.8)} }
+
+  .live-badge {
+    display: inline-flex; align-items: center;
+    font-size: 10px; color: var(--green); font-family: var(--mono);
+    gap: 4px; background: var(--green-dim); padding: 3px 8px; border-radius: 99px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-title">PORT<span>FOLIO</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('list', this)">📊 พอร์ต</button>
+    <button class="nav-tab" onclick="showPage('add', this)">＋ เพิ่ม</button>
+  </div>
+  <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="เปลี่ยนธีม">🌙</button>
+</nav>
+
+<!-- LIST PAGE -->
+<div id="page-list" class="page active">
+  <div class="summary-card" id="summary-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="summary-label">มูลค่าสินทรัพย์ทั้งหมด</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="fetchAllStockPrices(true)" title="อัปเดตราคาทันที" style="background:var(--green-dim);border:1px solid rgba(0,212,160,0.3);color:var(--green);border-radius:99px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:var(--mono);">↻ refresh</button>
+        <div class="live-badge"><span class="loading-dot"></span>Live</div>
+      </div>
+    </div>
+    <div class="summary-value" id="total-value">0<span class="currency">THB</span></div>
+    <div class="summary-goal" id="goal-text">เป้าหมาย: 12,000,000 THB</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-pct" id="progress-pct">0.00% จากเป้าหมาย</div>
+    <div class="summary-grid">
+      <div class="summary-stat">
+        <div class="stat-label">ต้นทุนรวม</div>
+        <div class="stat-val gold" id="total-cost">0 THB</div>
+      </div>
+      <div class="summary-stat">
+        <div class="stat-label">กำไร/ขาดทุน</div>
+        <div class="stat-val" id="total-pnl">0 THB</div>
+      </div>
+    </div>
+    <div class="exchange-rate" id="exchange-display">
+      <span class="flag">🇺🇸</span>
+      <span id="exchange-text">กำลังดึงอัตราแลกเปลี่ยน...</span>
+    </div>
+    <!-- Finnhub API Key Banner -->
+    <div id="api-key-banner" style="display:none;margin-top:10px;background:var(--gold-dim);border:1px solid rgba(245,200,66,0.3);border-radius:10px;padding:10px 14px;">
+      <div style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:6px;">🔑 ใส่ Finnhub API Key เพื่อดูราคาหุ้น real-time</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;">ฟรี — สมัครที่ <strong>finnhub.io</strong> แล้ว copy key มาวาง</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="api-key-input" placeholder="d1xxxx..." style="flex:1;font-size:13px;padding:8px 12px;font-family:var(--mono);">
+        <button onclick="saveFinnhubKey(document.getElementById('api-key-input').value)" style="background:var(--gold);color:#000;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--sans);">บันทึก</button>
+      </div>
+    </div>
+    <!-- Finnhub Key Active indicator -->
+    <div id="api-key-active" style="display:none;margin-top:10px;background:var(--green-dim);border:1px solid rgba(0,212,160,0.2);border-radius:10px;padding:8px 14px;display:none;align-items:center;justify-content:space-between;">
+      <span style="font-size:11px;color:var(--green);">🔑 Finnhub key: <span id="api-key-masked" style="font-family:var(--mono)"></span></span>
+      <button onclick="document.getElementById('api-key-change').style.display='block';this.style.display='none'" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:0;">เปลี่ยน</button>
+    </div>
+    <div id="api-key-change" style="display:none;margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="api-key-input2" placeholder="ใส่ key ใหม่..." style="flex:1;font-size:13px;padding:8px 12px;font-family:var(--mono);">
+        <button onclick="saveFinnhubKey(document.getElementById('api-key-input2').value);document.getElementById('api-key-change').style.display='none'" style="background:var(--green);color:#000;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Asset Tabs -->
+  <div id="asset-tabs" style="display:none;margin-bottom:12px;margin-top:24px;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tab-buttons"></div>
+  </div>
+  <div class="section-header" style="margin-top:0;">
+    <div class="section-title" id="tab-label">สินทรัพย์</div>
+    <div class="section-count" id="asset-count">0 รายการ</div>
+  </div>
+  <div class="asset-list" id="asset-list">
+    <div class="empty-state">
+      <div class="icon">📈</div>
+      <p>ยังไม่มีสินทรัพย์<br>กด <strong>＋ เพิ่ม</strong> เพื่อเริ่มต้น</p>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PAGE -->
+<div id="page-add" class="page">
+  <div class="add-page-header">
+    <h2>เพิ่มสินทรัพย์</h2>
+    <p>เลือกประเภทสินทรัพย์ที่ต้องการบันทึก</p>
+  </div>
+  <div class="type-picker" style="grid-template-columns:1fr 1fr;">
+    <div class="type-btn" onclick="selectType('fund')" id="type-fund">
+      <div class="icon">🏦</div>
+      <div class="label">กองทุนรวม</div>
+      <div class="sub">Thai Fund</div>
+    </div>
+    <div class="type-btn" onclick="selectType('us_stock')" id="type-us_stock">
+      <div class="icon">🇺🇸</div>
+      <div class="label">หุ้นสหรัฐ</div>
+      <div class="sub">US Stock</div>
+    </div>
+    <div class="type-btn" onclick="selectType('gold')" id="type-gold">
+      <div class="icon">🥇</div>
+      <div class="label">ทองคำ</div>
+      <div class="sub">Gold</div>
+    </div>
+    <div class="type-btn" onclick="selectType('cash')" id="type-cash">
+      <div class="icon">💵</div>
+      <div class="label">เงินสด</div>
+      <div class="sub">Cash / THB</div>
+    </div>
+  </div>
+  <div id="add-form-container"></div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3 id="edit-modal-title">แก้ไขรายการ</h3>
+    <div id="edit-modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="saveEdit()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">ยืนยันการลบ</h4>
+    <p id="confirm-msg">ต้องการลบสินทรัพย์นี้ใช่ไหม?</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="btn-confirm-ok" id="confirm-ok-btn">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DATA STORE
+// ============================================================
+const STORAGE_KEY = 'portfolio_v2';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : { assets: [] };
+  } catch { return { assets: [] }; }
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let db = loadData();
+let usdThb = 33.0;
+let priceCache = {};
+let editContext = null;
+let activeTab = 'all';
+
+// ============================================================
+// PRICE & EXCHANGE RATE
+// ============================================================
+const FUND_PRICES = {
+  'SCBS&P500A': 37.35, 'K-SF-A': 11.98, 'K-SFPLUS-A': 12.45,
+  'KFSMART-A': 11.20, 'B-TNTV': 9.82, 'SCBSFF': 10.15,
+  'KKP PLUS': 11.30, 'K-FIXED-A': 11.05, 'ES-IPLUS': 10.72,
+};
+
+async function fetchExchangeRate() {
+  try {
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d = await r.json();
+    if (d.rates && d.rates.THB) {
+      usdThb = d.rates.THB;
+    }
+  } catch {
+    // fallback: try another source
+    try {
+      const r2 = await fetch('https://open.er-api.com/v6/latest/USD');
+      const d2 = await r2.json();
+      if (d2.rates && d2.rates.THB) usdThb = d2.rates.THB;
+    } catch { usdThb = 33.0; }
+  }
+  document.getElementById('exchange-text').textContent = `1 USD = ${usdThb.toFixed(2)} THB`;
+  renderList();
+}
+
+// ============================================================
+// FINNHUB API KEY
+// ============================================================
+let finnhubKey = localStorage.getItem('finnhub_key') || '';
+
+function saveFinnhubKey(key) {
+  finnhubKey = key.trim();
+  localStorage.setItem('finnhub_key', finnhubKey);
+  if (finnhubKey) {
+    toast('บันทึก API Key แล้ว 🔑', 'success');
+    fetchAllStockPrices();
+  }
+}
+
+// ============================================================
+// REAL-TIME STOCK PRICES (FINNHUB)
+// ============================================================
+let lastPriceFetch = 0;
+const PRICE_TTL = 60000; // 60s cache
+
+async function fetchUSStockPrice(ticker) {
+  const yhUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(ticker) + '?interval=1d&range=1d';
+  const proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(yhUrl),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(yhUrl),
+  ];
+
+  for (var pi = 0; pi < proxies.length; pi++) {
+    var url = proxies[pi];
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, 8000);
+    try {
+      var r = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!r.ok) continue;
+      var text = await r.text();
+      var json;
+      try {
+        var outer = JSON.parse(text);
+        json = outer.contents ? JSON.parse(outer.contents) : outer;
+      } catch(e) { continue; }
+      var meta = json && json.chart && json.chart.result && json.chart.result[0] && json.chart.result[0].meta;
+      if (!meta) continue;
+      var current = meta.regularMarketPrice || meta.previousClose;
+      var prevClose = meta.chartPreviousClose || meta.previousClose;
+      if (!current || current <= 0) continue;
+      var change = prevClose ? ((current - prevClose) / prevClose) * 100 : 0;
+      return { current: current, prevClose: prevClose, change: change };
+    } catch(e) {
+      clearTimeout(timer);
+      continue;
+    }
+  }
+  return null;
+}
+
+async function fetchAllStockPrices(force = false) {
+  const now = Date.now();
+  if (!force && now - lastPriceFetch < PRICE_TTL) return;
+  lastPriceFetch = now;
+
+  const stocks = db.assets.filter(a => a.type === 'us_stock' && getAssetUnits(a) > 0);
+  if (!stocks.length) return;
+
+  const badge = document.querySelector('.live-badge');
+  if (badge) badge.innerHTML = '<span class="loading-dot"></span>กำลังอัปเดต...';
+
+  let updated = 0;
+  for (const asset of stocks) {
+    let result = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      result = await fetchUSStockPrice(asset.symbol);
+      if (result) break;
+      await new Promise(r => setTimeout(r, 800));
+    }
+    if (result) {
+      priceCache[asset.symbol] = result.current;
+      priceChangeCache[asset.symbol] = result.change;
+      asset.lastPrice = result.current;
+      updated++;
+    }
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  if (badge) badge.innerHTML = '<span class="loading-dot"></span>Live';
+  saveData(db);
+  renderList();
+  if (updated > 0) {
+    toast(`อัปเดตราคา ${updated}/${stocks.length} หุ้น ✓`, 'success');
+  } else {
+    toast('ดึงราคาไม่ได้ — ตรวจสอบ internet', 'error');
+  }
+}
+
+let priceChangeCache = {};
+
+function getAssetCurrentValue(asset) {
+  if (asset.type === 'cash') return asset.amountTHB || 0;
+
+  if (asset.type === 'gold') {
+    var txs = asset.transactions || [];
+    // รวมน้ำหนักกรัมทั้งหมด
+    var totalGram = txs.reduce(function(s, t) {
+      return t.action === 'buy' ? s + (t.weight || 0) : s - (t.weight || 0);
+    }, 0);
+    // มูลค่าปัจจุบัน = น้ำหนัก (กรัม) ÷ 15.244 × ราคารับซื้อแท่ง (บาท/บาททอง)
+    var currentBarBuy = goldPriceCache.bar_buy || 0;
+    if (!currentBarBuy) {
+      // fallback: ใช้ราคาซื้อล่าสุด
+      var lastTx = txs.slice().reverse().find(function(t) { return t.action === 'buy'; });
+      currentBarBuy = lastTx ? lastTx.pricePerBaht : 0;
+    }
+    return totalGram / 15.244 * currentBarBuy;
+  }
+
+  if (asset.type === 'fund') {
+    const txs = asset.transactions || [];
+    let units = 0, cost = 0;
+    txs.forEach(tx => {
+      if (tx.action === 'buy') { units += tx.units; cost += tx.valueTHB; }
+      else if (tx.action === 'sell') { units -= tx.units; cost -= tx.valueTHB; }
+    });
+    const price = priceCache[asset.symbol] || FUND_PRICES[asset.symbol] || asset.lastNav || 10;
+    return units * price;
+  }
+
+  if (asset.type === 'us_stock') {
+    const txs = asset.transactions || [];
+    let shares = 0, cost = 0;
+    txs.forEach(tx => {
+      if (tx.action === 'buy') { shares += tx.shares; cost += tx.valueUSD; }
+      else if (tx.action === 'sell') { shares -= tx.shares; cost -= tx.valueUSD; }
+    });
+    const priceUSD = priceCache[asset.symbol] || asset.lastPrice || 0;
+    return shares * priceUSD * usdThb;
+  }
+  return 0;
+}
+
+function getAssetCost(asset) {
+  if (asset.type === 'cash') return asset.amountTHB || 0;
+  if (asset.type === 'gold') {
+    return (asset.transactions || []).reduce(function(s, t) {
+      return t.action === 'buy' ? s + (t.totalTHB || 0) : s - (t.totalTHB || 0);
+    }, 0);
+  }
+  const txs = asset.transactions || [];
+  let cost = 0;
+  txs.forEach(tx => {
+    if (tx.action === 'buy') {
+      cost += asset.type === 'fund' ? tx.valueTHB : (tx.valueUSD * usdThb);
+    } else if (tx.action === 'sell') {
+      cost -= asset.type === 'fund' ? tx.valueTHB : (tx.valueUSD * usdThb);
+    }
+  });
+  return cost;
+}
+
+function getAssetUnits(asset) {
+  if (asset.type === 'fund') {
+    return (asset.transactions||[]).reduce((s,t) => t.action==='buy' ? s+t.units : s-t.units, 0);
+  }
+  if (asset.type === 'us_stock') {
+    return (asset.transactions||[]).reduce((s,t) => t.action==='buy' ? s+t.shares : s-t.shares, 0);
+  }
+  if (asset.type === 'gold') {
+    // คืนน้ำหนักในกรัม
+    return (asset.transactions||[]).reduce(function(s,t) {
+      return t.action==='buy' ? s+(t.weight||0) : s-(t.weight||0);
+    }, 0);
+  }
+  return 0;
+}
+
+// ============================================================
+// RENDER LIST
+// ============================================================
+const TAB_DEFS = [
+  { key: 'all',      icon: '🗂',  label: 'All',    filter: function(a) { return true; } },
+  { key: 'fund',     icon: '🏦',  label: 'กองทุน', filter: function(a) { return a.type === 'fund'; } },
+  { key: 'gold',     icon: '🥇',  label: 'ทอง',    filter: function(a) { return a.type === 'gold'; } },
+  { key: 'us_stock', icon: '🇺🇸', label: 'หุ้น',   filter: function(a) { return a.type === 'us_stock'; } },
+  { key: 'cash',     icon: '💵',  label: 'เงิน',   filter: function(a) { return a.type === 'cash'; } },
+];
+
+function setTab(key) {
+  activeTab = key;
+  renderList();
+}
+
+function renderList() {
+  const allAssets = db.assets.filter(function(a) {
+    if (a.type === 'fund' || a.type === 'us_stock' || a.type === 'gold') {
+      return getAssetUnits(a) > 0.000001;
+    }
+    return true;
+  });
+
+  // Build tabs — only show tabs that have data
+  const visibleTabs = TAB_DEFS.filter(function(t) {
+    return t.key === 'all' || allAssets.some(t.filter);
+  });
+
+  const tabsEl = document.getElementById('asset-tabs');
+  const tabBtns = document.getElementById('tab-buttons');
+  if (allAssets.length > 0 && visibleTabs.length > 1) {
+    tabsEl.style.display = 'block';
+    tabBtns.innerHTML = visibleTabs.map(function(t) {
+      const count = t.key === 'all' ? allAssets.length : allAssets.filter(t.filter).length;
+      return '<button class="asset-tab ' + (activeTab === t.key ? 'active' : '') + '" onclick="setTab(\'' + t.key + '\')">' +
+        t.icon + ' ' + t.label +
+        '<span class="tab-count">' + count + '</span>' +
+        '</button>';
+    }).join('');
+  } else {
+    tabsEl.style.display = 'none';
+  }
+
+  // Filter for display
+  const tabDef = TAB_DEFS.find(function(t) { return t.key === activeTab; });
+  const assets = tabDef ? allAssets.filter(tabDef.filter) : allAssets;
+
+  // Tab label
+  const tabLabel = document.getElementById('tab-label');
+  if (tabLabel) {
+    const def = TAB_DEFS.find(function(t) { return t.key === activeTab; });
+    tabLabel.textContent = (def && activeTab !== 'all') ? def.icon + ' ' + def.label : 'สินทรัพย์';
+  }
+
+  // Summary always uses ALL assets
+  let totalValue = 0, totalCost = 0;
+  allAssets.forEach(function(a) {
+    totalValue += getAssetCurrentValue(a);
+    totalCost += getAssetCost(a);
+  });
+
+  const GOAL = 12000000;
+  const pct = Math.min((totalValue / GOAL) * 100, 100);
+  const pnl = totalValue - totalCost;
+
+  document.getElementById('total-value').innerHTML =
+    fmtTHB(totalValue) + '<span class="currency">THB</span>';
+  document.getElementById('progress-fill').style.width = pct.toFixed(3) + '%';
+  document.getElementById('progress-pct').textContent = pct.toFixed(2) + '% จากเป้าหมาย';
+  document.getElementById('total-cost').textContent = fmtTHB(totalCost) + ' THB';
+
+  const pnlEl = document.getElementById('total-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtTHB(pnl) + ' THB';
+  pnlEl.className = 'stat-val ' + (pnl >= 0 ? 'green' : 'red');
+
+  document.getElementById('asset-count').textContent = assets.length + ' รายการ';
+
+  // Hide API key UI
+  const banner = document.getElementById('api-key-banner');
+  const activeEl = document.getElementById('api-key-active');
+  const changeEl = document.getElementById('api-key-change');
+  if (banner) banner.style.display = 'none';
+  if (activeEl) activeEl.style.display = 'none';
+  if (changeEl) changeEl.style.display = 'none';
+
+  const listEl = document.getElementById('asset-list');
+  if (allAssets.length === 0) {
+    listEl.innerHTML = `<div class="empty-state"><div class="icon">📈</div><p>ยังไม่มีสินทรัพย์<br>กด <strong>＋ เพิ่ม</strong> เพื่อเริ่มต้น</p></div>`;
+    return;
+  }
+  if (assets.length === 0) {
+    const def = TAB_DEFS.find(function(t) { return t.key === activeTab; });
+    listEl.innerHTML = `<div class="empty-state"><div class="icon">${def ? def.icon : '📈'}</div><p>ยังไม่มี${def && activeTab !== 'all' ? def.label : 'สินทรัพย์'}ในพอร์ต</p></div>`;
+    return;
+  }
+
+  // Sort by value desc
+  const sorted = [...assets].sort((a,b) => getAssetCurrentValue(b) - getAssetCurrentValue(a));
+
+  listEl.innerHTML = sorted.map(asset => {
+    const val = getAssetCurrentValue(asset);
+    const cost = getAssetCost(asset);
+    const pnlAmt = val - cost;
+    const pnlPct = cost > 0 ? (pnlAmt / cost) * 100 : 0;
+    const alloc = totalValue > 0 ? (val / totalValue * 100).toFixed(2) : '0.00';
+    const isPos = pnlAmt >= 0;
+    const color = assetColor(asset);
+    const abbr = asset.symbol.slice(0,4).toUpperCase();
+
+    const txRows = (asset.transactions||[]).slice().reverse().map(tx => {
+      if (asset.type === 'fund') {
+        return `<div class="tx-item">
+          <span class="tx-badge ${tx.action}">${tx.action==='buy'?'ซื้อ':'ขาย'}</span>
+          <span class="tx-info">${fmtTHB(tx.valueTHB)} THB | ${tx.units.toFixed(4)} หน่วย @ ${tx.nav}</span>
+          <span class="tx-date">${tx.date}</span>
+        </div>`;
+      }
+      if (asset.type === 'us_stock') {
+        return `<div class="tx-item">
+          <span class="tx-badge ${tx.action}">${tx.action==='buy'?'ซื้อ':'ขาย'}</span>
+          <span class="tx-info">${tx.valueUSD} USD | ${tx.shares.toFixed(6)} หุ้น @ $${tx.price}</span>
+          <span class="tx-date">${tx.date}</span>
+        </div>`;
+      }
+      if (asset.type === 'gold') {
+        return `<div class="tx-item">
+          <span class="tx-badge ${tx.action}">${tx.action==='buy'?'ซื้อ':'ขาย'}</span>
+          <span class="tx-info">${fmtTHB(tx.totalTHB)} ฿ | ${(tx.bahtWeight||0).toFixed(4)} บาท (${(tx.weight||0).toFixed(4)} ก.) @ ${fmtTHB(tx.pricePerBaht)} ฿/บาท</span>
+          <span class="tx-date">${tx.date}</span>
+        </div>`;
+      }
+      return '';
+    }).join('');
+
+    let extraDetail = '';
+    if (asset.type === 'fund') {
+      const units = getAssetUnits(asset);
+      const nav = priceCache[asset.symbol] || FUND_PRICES[asset.symbol] || asset.lastNav || 10;
+      extraDetail = `
+        <div class="detail-grid">
+          <div class="detail-cell"><div class="detail-label">หน่วยลงทุน</div><div class="detail-value">${units.toFixed(4)}</div></div>
+          <div class="detail-cell"><div class="detail-label">NAV ปัจจุบัน</div><div class="detail-value">${nav.toFixed(4)} THB</div></div>
+          <div class="detail-cell"><div class="detail-label">ต้นทุน/หน่วย</div><div class="detail-value">${(cost/units||0).toFixed(4)} THB</div></div>
+          <div class="detail-cell"><div class="detail-label">มูลค่ารวม</div><div class="detail-value">${fmtTHB(val)} THB</div></div>
+        </div>`;
+    } else if (asset.type === 'us_stock') {
+      const shares = getAssetUnits(asset);
+      const priceUSD = priceCache[asset.symbol] || asset.lastPrice || 0;
+      const dayChg = priceChangeCache[asset.symbol];
+      const priceLabel = finnhubKey && priceCache[asset.symbol]
+        ? `$${priceUSD.toFixed(2)} <span style="font-size:10px;color:${dayChg>=0?'var(--green)':'var(--red)'}">${dayChg>=0?'+':''}${(dayChg||0).toFixed(2)}% วันนี้</span>`
+        : `$${priceUSD.toFixed(2)} <span style="font-size:10px;color:var(--text3)">(ราคาซื้อ)</span>`;
+      extraDetail = `
+        <div class="detail-grid">
+          <div class="detail-cell"><div class="detail-label">จำนวนหุ้น</div><div class="detail-value">${shares.toFixed(6)}</div></div>
+          <div class="detail-cell"><div class="detail-label">ราคาปัจจุบัน</div><div class="detail-value">${priceLabel}</div></div>
+          <div class="detail-cell"><div class="detail-label">≈ USD</div><div class="detail-value">${(val/usdThb).toFixed(2)} USD</div></div>
+          <div class="detail-cell"><div class="detail-label">มูลค่ารวม</div><div class="detail-value">${fmtTHB(val)} THB</div></div>
+        </div>`;
+    } else if (asset.type === 'gold') {
+      var totalGram = getAssetUnits(asset);
+      var totalBaht = totalGram / 15.244;
+      var currentBarBuy = goldPriceCache.bar_buy || 0;
+      var costPerBaht = totalBaht > 0 ? getAssetCost(asset) / totalBaht : 0;
+      extraDetail = '<div class="detail-grid">' +
+        '<div class="detail-cell"><div class="detail-label">น้ำหนัก (กรัม)</div><div class="detail-value">' + totalGram.toFixed(4) + ' ก.</div></div>' +
+        '<div class="detail-cell"><div class="detail-label">น้ำหนัก (บาททอง)</div><div class="detail-value">' + totalBaht.toFixed(4) + ' บาท</div></div>' +
+        '<div class="detail-cell"><div class="detail-label">ราคารับซื้อแท่งวันนี้</div><div class="detail-value">' + (currentBarBuy > 0 ? fmtTHB(currentBarBuy) + ' ฿/บาท' : 'กำลังดึง...') + '</div></div>' +
+        '<div class="detail-cell"><div class="detail-label">ต้นทุน/บาททอง</div><div class="detail-value">' + fmtTHB(costPerBaht) + ' ฿</div></div>' +
+        '</div>';
+    } else {
+      extraDetail = `<div class="detail-grid">
+        <div class="detail-cell"><div class="detail-label">จำนวน</div><div class="detail-value">${fmtTHB(val)} THB</div></div>
+      </div>`;
+    }
+
+    return `<div class="asset-item" id="asset-${asset.id}" onclick="toggleAsset('${asset.id}')">
+      <div class="asset-row">
+        <div class="asset-icon" style="background:${color}20;color:${color}">${abbr}</div>
+        <div class="asset-info">
+          <div class="asset-name">${asset.symbol}</div>
+          <div class="asset-type">${asset.name || typeLabel(asset.type)}</div>
+          <div class="asset-alloc">สัดส่วน ${alloc}%</div>
+        </div>
+        <div class="asset-right">
+          <div class="asset-value">${fmtTHB(val)}</div>
+          <div class="asset-pnl ${isPos?'green':'red'}">${isPos?'↑':'↓'} ${Math.abs(pnlPct).toFixed(2)}% (${isPos?'+':''}${fmtTHB(pnlAmt)})</div>
+          ${asset.type === 'us_stock' && priceChangeCache[asset.symbol] !== undefined
+            ? `<div style="font-size:10px;font-family:var(--mono);margin-top:2px;color:${priceChangeCache[asset.symbol]>=0?'var(--green)':'var(--red)'}">วันนี้ ${priceChangeCache[asset.symbol]>=0?'+':''}${(priceChangeCache[asset.symbol]||0).toFixed(2)}%</div>`
+            : ''}
+        </div>
+      </div>
+      <div class="asset-detail">
+        ${extraDetail}
+        ${txRows ? `<div class="transactions-title">รายการ</div><div class="tx-list">${txRows}</div>` : ''}
+        <div class="asset-actions">
+          ${asset.type === 'fund' ? `<button class="btn-nav-update" onclick="event.stopPropagation();quickUpdateNAV('${asset.id}')">📊 อัปเดต NAV</button>` : ''}
+          <button class="btn-add-tx" onclick="event.stopPropagation();openAddTx('${asset.id}')">＋ เพิ่มรายการ</button>
+          <button class="btn-edit" onclick="event.stopPropagation();openEdit('${asset.id}')">✏️ แก้ไข</button>
+          <button class="btn-delete" onclick="event.stopPropagation();deleteAsset('${asset.id}')">🗑 ลบ</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAsset(id) {
+  const el = document.getElementById('asset-' + id);
+  el.classList.toggle('expanded');
+}
+
+function typeLabel(t) {
+  return t === 'fund' ? 'กองทุนรวม' : t === 'us_stock' ? 'หุ้นสหรัฐ' : t === 'gold' ? 'ทองคำ' : 'เงินสด';
+}
+
+function assetColor(a) {
+  if (a.type === 'fund') return '#4d9fff';
+  if (a.type === 'us_stock') return '#f5c842';
+  if (a.type === 'gold') return '#f5a623';
+  return '#00d4a0';
+}
+
+function fmtTHB(n) {
+  if (n === undefined || n === null || isNaN(n)) return '0.00';
+  return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ============================================================
+// THEME
+// ============================================================
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.documentElement.classList.add('light');
+    document.getElementById('theme-btn').textContent = '☀️';
+  } else {
+    document.documentElement.classList.remove('light');
+    document.getElementById('theme-btn').textContent = '🌙';
+  }
+  localStorage.setItem('portfolio_theme', theme);
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
+// ============================================================
+// PAGE NAV
+// ============================================================
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'list') renderList();
+}
+
+// ============================================================
+// ADD FORM
+// ============================================================
+let currentType = null;
+
+// Thai mutual fund database
+const FUND_DB = [
+  // SCB / ไทยพาณิชย์
+  { symbol: 'SCBS&P500A', name: 'กองทุนเปิดไทยพาณิชย์ S&P500' },
+  { symbol: 'SCBRMFS&P500', name: 'กองทุนเปิดไทยพาณิชย์ RMF S&P500' },
+  { symbol: 'SCBSFF', name: 'กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น' },
+  { symbol: 'SCB-SET50', name: 'กองทุนเปิดไทยพาณิชย์ SET50' },
+  { symbol: 'SCBSET50', name: 'กองทุนเปิดไทยพาณิชย์ SET50' },
+  { symbol: 'SCBGOLD', name: 'กองทุนเปิดไทยพาณิชย์ โกลด์' },
+  { symbol: 'SCBNDQ', name: 'กองทุนเปิดไทยพาณิชย์ NASDAQ' },
+  { symbol: 'SCBRMFND', name: 'กองทุนเปิดไทยพาณิชย์ RMF NASDAQ' },
+  { symbol: 'SCBRMFEQ', name: 'กองทุนเปิดไทยพาณิชย์ RMF หุ้นไทย' },
+  { symbol: 'SCBEQ', name: 'กองทุนเปิดไทยพาณิชย์ หุ้นระยะยาว' },
+  { symbol: 'K-SF-A', name: 'กองทุนเปิดเค ตราสารหนี้ระยะสั้น' },
+  { symbol: 'K-SFPLUS-A', name: 'กองทุนเปิดเค เอสเอฟ พลัส' },
+  { symbol: 'KFSMART-A', name: 'กองทุนเปิดกรุงศรีสมาร์ทตราสารหนี้-สะสมมูลค่า' },
+  { symbol: 'B-TNTV', name: 'กองทุนเปิดบัวหลวงธนทวี' },
+  { symbol: 'SCBSFF', name: 'กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น' },
+  { symbol: 'KKP PLUS', name: 'กองทุนเปิดเคเคพี ตราสารหนี้พลัส' },
+  { symbol: 'K-FIXED-A', name: 'กองทุนเปิดเค ตราสารหนี้' },
+  { symbol: 'ES-IPLUS', name: 'กองทุนเปิดอีสก์สปริง Income Plus' },
+  { symbol: 'TMBUSB', name: 'กองทุนเปิดทีเอ็มบี US Bond' },
+  { symbol: 'UGIS-N', name: 'กองทุนเปิดยูโอบี โกลบอลอินคัม' },
+  { symbol: 'KT-BOND', name: 'กองทุนเปิดกรุงไทยตราสารหนี้' },
+  { symbol: 'SCB-SET50', name: 'กองทุนเปิดไทยพาณิชย์ SET50' },
+  // กองทุนทองคำ
+  { symbol: 'KF-GOLD', name: 'กองทุนเปิดกรุงศรีโกลด์' },
+  { symbol: 'KFGOLD-A', name: 'กองทุนเปิดกรุงศรีโกลด์ ชนิดสะสมมูลค่า' },
+  { symbol: 'TMBGOLD', name: 'กองทุนเปิดทีเอ็มบี โกลด์' },
+  { symbol: 'SCBGOLD', name: 'กองทุนเปิดไทยพาณิชย์ โกลด์' },
+  { symbol: 'B-GOLD', name: 'กองทุนเปิดบัวหลวงโกลด์' },
+  { symbol: 'ASP-GOLD', name: 'กองทุนเปิดแอสเซทพลัส โกลด์' },
+  { symbol: 'GOLDZ-UH', name: 'กองทุนเปิดโกลด์ Z Unhedged' },
+  { symbol: 'ONE-GOLD', name: 'กองทุนเปิดวัน โกลด์' },
+  { symbol: 'K-GOLD-A', name: 'กองทุนเปิดเค โกลด์' },
+  { symbol: 'PHATRA GOLD', name: 'กองทุนเปิดภัทร โกลด์' },
+  // กองทุนหุ้นไทย
+  { symbol: 'K-SET50-A', name: 'กองทุนเปิดเค SET50' },
+  { symbol: 'KFSMART50', name: 'กองทุนเปิดกรุงศรีสมาร์ท SET50' },
+  { symbol: 'B-SET50', name: 'กองทุนเปิดบัวหลวง SET50' },
+  { symbol: 'SCBSET50', name: 'กองทุนเปิดไทยพาณิชย์ SET50' },
+  { symbol: 'TDEX', name: 'กองทุนรวม ETF ดัชนี SET50' },
+  // กองทุนหุ้นต่างประเทศ
+  { symbol: 'K-USXNDQ-A', name: 'กองทุนเปิดเค US-NDQ หุ้น' },
+  { symbol: 'KFnasdaq', name: 'กองทุนเปิดกรุงศรี NASDAQ' },
+  { symbol: 'B-INNOTECH', name: 'กองทุนเปิดบัวหลวง Innovation & Technology' },
+  { symbol: 'SCBNDQ', name: 'กองทุนเปิดไทยพาณิชย์ NASDAQ' },
+  { symbol: 'T-ES-GTECH', name: 'กองทุนเปิดทิสโก้ Global Tech' },
+  { symbol: 'KFGTECH-A', name: 'กองทุนเปิดกรุงศรี Global Tech' },
+  { symbol: 'PRINCIPAL VNEQ-A', name: 'กองทุนเปิดพรินซิเพิล เวียดนาม' },
+  { symbol: 'K-CHINA-A', name: 'กองทุนเปิดเค ไชน่า' },
+  { symbol: 'KFACHINA-A', name: 'กองทุนเปิดกรุงศรี China-A' },
+  // กองทุนตลาดเงิน
+  { symbol: 'K-CASH', name: 'กองทุนเปิดเค แคช' },
+  { symbol: 'KFMONEY-A', name: 'กองทุนเปิดกรุงศรี Money' },
+  { symbol: 'SCBMF', name: 'กองทุนเปิดไทยพาณิชย์ตลาดเงิน' },
+  { symbol: 'B-TREASURY', name: 'กองทุนเปิดบัวหลวงธนทรัพย์' },
+];
+
+const STOCK_DB = [
+  { symbol: 'GOOGL', name: 'Alphabet Inc. Class A Common Stock', exchange: 'NASDAQ' },
+  { symbol: 'GOOG', name: 'Alphabet Inc. Class C Capital Stock', exchange: 'NASDAQ' },
+  { symbol: 'AAPL', name: 'Apple Inc.', exchange: 'NASDAQ' },
+  { symbol: 'MSFT', name: 'Microsoft Corp', exchange: 'NASDAQ' },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', exchange: 'NASDAQ' },
+  { symbol: 'AMZN', name: 'Amazon.Com Inc', exchange: 'NASDAQ' },
+  { symbol: 'META', name: 'Meta Platforms Inc.', exchange: 'NASDAQ' },
+  { symbol: 'TSLA', name: 'Tesla, Inc.', exchange: 'NASDAQ' },
+  { symbol: 'TSM', name: 'Taiwan Semiconductor Manufacturing', exchange: 'NYSE' },
+  { symbol: 'AVGO', name: 'Broadcom Inc. Common Stock', exchange: 'NASDAQ' },
+  { symbol: 'JPM', name: 'JPMorgan Chase & Co.', exchange: 'NYSE' },
+  { symbol: 'V', name: 'Visa Inc. Class A', exchange: 'NYSE' },
+  { symbol: 'WMT', name: 'Walmart Inc.', exchange: 'NYSE' },
+  { symbol: 'MA', name: 'Mastercard Inc.', exchange: 'NYSE' },
+  { symbol: 'COST', name: 'Costco Wholesale Corporation', exchange: 'NASDAQ' },
+  { symbol: 'AMD', name: 'Advanced Micro Devices, Inc.', exchange: 'NASDAQ' },
+  { symbol: 'INTC', name: 'Intel Corporation', exchange: 'NASDAQ' },
+  { symbol: 'NFLX', name: 'Netflix, Inc.', exchange: 'NASDAQ' },
+  { symbol: 'DIS', name: 'The Walt Disney Company', exchange: 'NYSE' },
+  { symbol: 'BABA', name: 'Alibaba Group Holding Limited', exchange: 'NYSE' },
+];
+
+function selectType(type) {
+  currentType = type;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('type-' + type).classList.add('selected');
+  renderAddForm(type);
+}
+
+function renderAddForm(type) {
+  const c = document.getElementById('add-form-container');
+  const today = new Date().toISOString().split('T')[0];
+
+  if (type === 'fund') {
+    c.innerHTML = `
+    <div class="form-card">
+      <h3>🏦 เพิ่มกองทุนรวม</h3>
+      <div class="form-group">
+        <label>ค้นหากองทุน</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="fund-search" placeholder="พิมพ์ชื่อหรือรหัสกองทุน..." oninput="filterFunds(this.value)" autocomplete="off">
+          <div class="autocomplete-results" id="fund-results"></div>
+        </div>
+        <input type="hidden" id="fund-symbol">
+        <input type="hidden" id="fund-name">
+      </div>
+      <div class="form-group">
+        <label>วันที่คำสั่งมีผล</label>
+        <input type="date" id="fund-date" value="${today}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>มูลค่าที่ซื้อ (THB)</label>
+          <input type="number" id="fund-value" placeholder="5000" oninput="calcFundUnits()">
+        </div>
+        <div class="form-group">
+          <label>ราคาหน่วยลงทุน (NAV)</label>
+          <input type="number" id="fund-nav" placeholder="11.9797" step="0.0001" oninput="calcFundUnits()">
+        </div>
+      </div>
+      <div id="fund-preview" style="display:none" class="calc-preview">
+        จำนวนหน่วยลงทุน<strong id="fund-units-preview">0</strong>
+      </div>
+      <button class="btn-submit" onclick="submitFund()">บันทึก</button>
+    </div>`;
+  } else if (type === 'us_stock') {
+    c.innerHTML = `
+    <div class="form-card">
+      <h3>🇺🇸 เพิ่มหุ้นสหรัฐ</h3>
+      <div class="form-group">
+        <label>ค้นหาหุ้น</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="stock-search" placeholder="GOOGL, NVDA, MSFT..." oninput="filterStocks(this.value)" autocomplete="off">
+          <div class="autocomplete-results" id="stock-results"></div>
+        </div>
+        <input type="hidden" id="stock-symbol">
+        <input type="hidden" id="stock-name">
+      </div>
+      <div class="form-group">
+        <label>วันที่ทำรายการ</label>
+        <input type="date" id="stock-date" value="${today}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>มูลค่าที่ซื้อ (USD)</label>
+          <input type="number" id="stock-value" placeholder="15.48" step="0.01" oninput="calcStockShares()">
+        </div>
+        <div class="form-group">
+          <label>ราคา (USD)</label>
+          <input type="number" id="stock-price" placeholder="178.00" step="0.01" oninput="calcStockShares()">
+        </div>
+      </div>
+      <div id="stock-preview" style="display:none" class="calc-preview">
+        จำนวนหุ้น<strong id="stock-shares-preview">0</strong>
+      </div>
+      <button class="btn-submit" onclick="submitStock()">บันทึก</button>
+    </div>`;
+  } else if (type === 'cash') {
+    c.innerHTML = `
+    <div class="form-card">
+      <h3>💵 เพิ่มเงินสด</h3>
+      <div class="form-group">
+        <label>ชื่อ/รายละเอียด</label>
+        <input type="text" id="cash-name" placeholder="เงินสดธนาคารไทย">
+      </div>
+      <div class="form-group">
+        <label>จำนวนเงิน (THB)</label>
+        <input type="number" id="cash-amount" placeholder="50000">
+      </div>
+      <button class="btn-submit" onclick="submitCash()">บันทึก</button>
+    </div>`;
+  } else if (type === 'gold') {
+    const barBuy = goldPriceCache.bar_buy || 0;
+    const barSell = goldPriceCache.bar_sell || 0;
+    c.innerHTML = `
+    <div class="form-card">
+      <h3>🥇 เพิ่มทองคำ</h3>
+      <div id="gold-price-status" style="margin-bottom:16px;padding:10px 14px;background:var(--gold-dim);border:1px solid rgba(245,200,66,0.3);border-radius:10px;font-size:12px;color:var(--gold);">
+        ${barBuy > 0
+          ? '🟡 ราคารับซื้อแท่งปัจจุบัน: <strong>' + fmtTHB(barBuy) + ' ฿/บาททอง</strong>'
+          : '<span class="loading-dot"></span> กำลังดึงราคาทองจากสมาคมค้าทองคำ...'}
+      </div>
+      <div class="form-group">
+        <label>ประเภท</label>
+        <select id="gold-type" onchange="calcGoldWeight()">
+          <option value="gold_bar">ทองคำแท่ง 99.99%</option>
+          <option value="gold_ornament">ทองรูปพรรณ 96.5%</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>วันที่ซื้อ</label>
+        <input type="date" id="gold-date" value="${new Date().toISOString().split('T')[0]}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>มูลค่าที่ซื้อ (บาท)</label>
+          <input type="number" id="gold-total-value" placeholder="9000" step="1" oninput="calcGoldWeight()">
+        </div>
+        <div class="form-group">
+          <label>ราคาทอง ณ วันที่ซื้อ (฿/บาททอง)</label>
+          <input type="number" id="gold-buy-price" placeholder="${barSell > 0 ? barSell.toFixed(0) : '41740'}" step="1" oninput="calcGoldWeight()">
+        </div>
+      </div>
+      <div id="gold-preview" style="display:none" class="calc-preview">
+        น้ำหนักทอง<strong id="gold-weight-preview">0</strong>
+        <div style="font-size:11px;margin-top:4px;opacity:0.8" id="gold-baht-preview"></div>
+      </div>
+      <button class="btn-submit" onclick="submitGold()">บันทึก</button>
+    </div>`;
+    if (!barBuy) fetchGoldPrice().then(function() {
+      var el = document.getElementById('gold-price-status');
+      var priceInput = document.getElementById('gold-buy-price');
+      if (el && goldPriceCache.bar_buy > 0) {
+        el.innerHTML = '🟡 ราคารับซื้อแท่งปัจจุบัน: <strong>' + fmtTHB(goldPriceCache.bar_buy) + ' ฿/บาททอง</strong>';
+        if (priceInput && !priceInput.value) priceInput.value = goldPriceCache.bar_sell.toFixed(0);
+        calcGoldWeight();
+      }
+    });
+  }
+}
+
+function filterFunds(q) {
+  const res = document.getElementById('fund-results');
+  if (!q) { res.classList.remove('open'); return; }
+  // Normalize: lowercase, remove spaces/dashes for fuzzy match
+  const norm = q.toLowerCase().replace(/[-\s]/g, '');
+  const matches = FUND_DB.filter(f => {
+    const symNorm = f.symbol.toLowerCase().replace(/[-\s]/g, '');
+    const nameNorm = f.name.toLowerCase().replace(/[-\s]/g, '');
+    return symNorm.includes(norm) || nameNorm.includes(norm);
+  }).slice(0, 8);
+  if (!matches.length) { res.classList.remove('open'); return; }
+  res.innerHTML = matches.map(f => `
+    <div class="ac-item" onclick="selectFund('${f.symbol}','${f.name.replace(/'/g,"\\'")}')">
+      <div class="ac-name">${f.symbol}</div>
+      <div class="ac-sub">${f.name}</div>
+    </div>`).join('');
+  res.classList.add('open');
+}
+
+function selectFund(symbol, name) {
+  document.getElementById('fund-search').value = symbol + ' — ' + name;
+  document.getElementById('fund-symbol').value = symbol;
+  document.getElementById('fund-name').value = name;
+  document.getElementById('fund-results').classList.remove('open');
+  // prefill NAV if known
+  if (FUND_PRICES[symbol]) {
+    document.getElementById('fund-nav').value = FUND_PRICES[symbol];
+    calcFundUnits();
+  }
+}
+
+function calcFundUnits() {
+  const val = parseFloat(document.getElementById('fund-value').value);
+  const nav = parseFloat(document.getElementById('fund-nav').value);
+  if (val > 0 && nav > 0) {
+    const units = val / nav;
+    document.getElementById('fund-units-preview').textContent = units.toFixed(4) + ' หน่วย';
+    document.getElementById('fund-preview').style.display = 'block';
+  }
+}
+
+let stockSearchTimer = null;
+
+function filterStocks(q) {
+  const res = document.getElementById('stock-results');
+  if (!q || q.length < 1) { res.classList.remove('open'); return; }
+
+  const qu = q.toUpperCase();
+
+  // Local: symbol must START with query (not just contain), or full name contains
+  const localMatches = STOCK_DB.filter(s =>
+    s.symbol.toUpperCase().startsWith(qu) ||
+    s.name.toLowerCase().startsWith(q.toLowerCase())
+  ).slice(0, 4);
+
+  res.innerHTML = (localMatches.length ? localMatches.map(s => `
+    <div class="ac-item" onclick="selectStock('${s.symbol}','${s.name.replace(/'/g,"\\'")}','${s.exchange}')">
+      <div class="ac-name">${s.symbol} <span style="font-size:10px;color:var(--text3)">${s.exchange}</span></div>
+      <div class="ac-sub">${s.name}</div>
+    </div>`).join('') : '') +
+    `<div id="remote-results"><div style="padding:10px 14px;font-size:11px;color:var(--text3)">🔍 กำลังค้นหา "${q}" จาก Yahoo Finance...</div></div>`;
+  res.classList.add('open');
+
+  clearTimeout(stockSearchTimer);
+  stockSearchTimer = setTimeout(() => fetchStockSearch(q), 450);
+}
+
+async function fetchStockSearch(q) {
+  const remoteEl = document.getElementById('remote-results');
+  if (!remoteEl) return;
+
+  // Try multiple CORS proxies
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=8&newsCount=0`)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=8&newsCount=0`)}`,
+  ];
+
+  for (const url of proxies) {
+    try {
+      const r = await fetch(url, { signal: (() => { const c = new AbortController(); setTimeout(() => c.abort(), 5000); return c.signal; })() });
+      if (!r.ok) continue;
+      let data;
+      const text = await r.text();
+      // allorigins wraps in { contents: "..." }
+      try {
+        const outer = JSON.parse(text);
+        data = outer.contents ? JSON.parse(outer.contents) : outer;
+      } catch { continue; }
+
+      const quotes = (data.quotes || []).filter(q =>
+        q.quoteType === 'EQUITY' || q.quoteType === 'ETF' || q.quoteType === 'MUTUALFUND'
+      );
+
+      if (!quotes.length) break;
+
+      // Remove duplicates with local
+      const localSymbols = new Set(STOCK_DB.map(s => s.symbol));
+      const remoteOnly = quotes.filter(q => !localSymbols.has(q.symbol));
+
+      remoteEl.innerHTML = remoteOnly.length ? remoteOnly.map(s => {
+        const sym = (s.symbol || '').replace(/'/g, "\\'");
+        const name = (s.longname || s.shortname || s.symbol || '').replace(/'/g, "\\'");
+        const exch = s.exchange || s.exchDisp || 'US';
+        return `<div class="ac-item" onclick="selectStock('${sym}','${name}','${exch}')">
+          <div class="ac-name">${s.symbol} <span style="font-size:10px;color:var(--text3)">${exch}</span></div>
+          <div class="ac-sub">${s.longname || s.shortname || ''}</div>
+        </div>`;
+      }).join('') : '<div style="padding:6px 14px;font-size:11px;color:var(--text3)">ไม่พบผลเพิ่มเติม</div>';
+      return; // success
+    } catch { continue; }
+  }
+
+  // All proxies failed — show manual entry
+  if (remoteEl) {
+    remoteEl.innerHTML = `
+      <div class="ac-item" onclick="selectStock('${q.toUpperCase().replace(/'/g,"\\'")}','${q.toUpperCase().replace(/'/g,"\\'")}','US')">
+        <div class="ac-name">${q.toUpperCase()} <span style="font-size:10px;color:var(--text3)">กรอกเอง</span></div>
+        <div class="ac-sub">ใช้ ticker "${q.toUpperCase()}" โดยตรง</div>
+      </div>`;
+  }
+}
+
+function selectStock(symbol, name, exchange) {
+  document.getElementById('stock-search').value = symbol + ' — ' + name;
+  document.getElementById('stock-symbol').value = symbol;
+  document.getElementById('stock-name').value = name;
+  document.getElementById('stock-results').classList.remove('open');
+}
+
+function calcStockShares() {
+  const val = parseFloat(document.getElementById('stock-value').value);
+  const price = parseFloat(document.getElementById('stock-price').value);
+  if (val > 0 && price > 0) {
+    const shares = val / price;
+    document.getElementById('stock-shares-preview').textContent = shares.toFixed(8) + ' หุ้น';
+    document.getElementById('stock-preview').style.display = 'block';
+  }
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function submitFund() {
+  const symbol = document.getElementById('fund-symbol').value;
+  const name = document.getElementById('fund-name').value;
+  const date = document.getElementById('fund-date').value;
+  const value = parseFloat(document.getElementById('fund-value').value);
+  const nav = parseFloat(document.getElementById('fund-nav').value);
+  if (!symbol) return toast('กรุณาเลือกกองทุน', 'error');
+  if (!date) return toast('กรุณาระบุวันที่', 'error');
+  if (!value || value <= 0) return toast('กรุณากรอกมูลค่าที่ซื้อ', 'error');
+  if (!nav || nav <= 0) return toast('กรุณากรอก NAV', 'error');
+  const units = value / nav;
+  addTransaction({ symbol, name, type: 'fund' }, { action: 'buy', date, valueTHB: value, nav, units });
+  toast('บันทึกสำเร็จ ✓', 'success');
+  selectType('fund');
+}
+
+function submitStock() {
+  const symbol = document.getElementById('stock-symbol').value;
+  const name = document.getElementById('stock-name').value;
+  const date = document.getElementById('stock-date').value;
+  const value = parseFloat(document.getElementById('stock-value').value);
+  const price = parseFloat(document.getElementById('stock-price').value);
+  if (!symbol) return toast('กรุณาเลือกหุ้น', 'error');
+  if (!date) return toast('กรุณาระบุวันที่', 'error');
+  if (!value || value <= 0) return toast('กรุณากรอกมูลค่าที่ซื้อ', 'error');
+  if (!price || price <= 0) return toast('กรุณากรอกราคา', 'error');
+  const shares = value / price;
+  addTransaction({ symbol, name, type: 'us_stock' }, { action: 'buy', date, valueUSD: value, price, shares });
+  priceCache[symbol] = price;
+  toast('บันทึกสำเร็จ ✓', 'success');
+  selectType('us_stock');
+}
+
+function submitCash() {
+  const name = document.getElementById('cash-name').value || 'เงินสด';
+  const amount = parseFloat(document.getElementById('cash-amount').value);
+  if (!amount || amount <= 0) return toast('กรุณากรอกจำนวนเงิน', 'error');
+  let existing = db.assets.find(a => a.type === 'cash' && a.symbol === 'CASH');
+  if (existing) {
+    existing.amountTHB = (existing.amountTHB || 0) + amount;
+    existing.name = name;
+  } else {
+    db.assets.push({ id: genId(), symbol: 'CASH', name, type: 'cash', amountTHB: amount });
+  }
+  saveData(db);
+  toast('บันทึกสำเร็จ ✓', 'success');
+  selectType('cash');
+}
+
+// ============================================================
+// GOLD
+// ============================================================
+let goldPriceCache = { sell: 0, buy: 0, bar_sell: 0, bar_buy: 0, updated: 0 };
+
+async function fetchGoldPrice() {
+  if (Date.now() - goldPriceCache.updated < 300000) return; // cache 5 min
+  const urls = [
+    'https://api.chnwt.dev/thai-gold-api/latest',
+    'https://corsproxy.io/?' + encodeURIComponent('https://api.chnwt.dev/thai-gold-api/latest'),
+  ];
+  for (var i = 0; i < urls.length; i++) {
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, 7000);
+    try {
+      var r = await fetch(urls[i], { signal: controller.signal });
+      clearTimeout(timer);
+      if (!r.ok) continue;
+      var d = await r.json();
+      // API response: { response: { price: { gold: { buy, sell }, gold_bar: { buy, sell } } } }
+      var price = d && d.response && d.response.price;
+      if (!price) continue;
+      var parseFn = function(s) { return parseFloat((s || '0').toString().replace(/,/g, '')); };
+      goldPriceCache = {
+        sell: parseFn(price.gold && price.gold.sell),
+        buy: parseFn(price.gold && price.gold.buy),
+        bar_sell: parseFn(price.gold_bar && price.gold_bar.sell),
+        bar_buy: parseFn(price.gold_bar && price.gold_bar.buy),
+        updated: Date.now()
+      };
+      // Update exchange display with gold price too
+      var exchEl = document.getElementById('gold-rate-display');
+      if (exchEl) exchEl.textContent = 'ทองรูปพรรณ ' + fmtTHB(goldPriceCache.sell) + ' บาท/กรัม';
+      return;
+    } catch(e) {
+      clearTimeout(timer);
+      continue;
+    }
+  }
+}
+
+function calcGoldWeight() {
+  var totalValue = parseFloat(document.getElementById('gold-total-value') && document.getElementById('gold-total-value').value);
+  var pricePerBaht = parseFloat(document.getElementById('gold-buy-price') && document.getElementById('gold-buy-price').value);
+  var goldType = document.getElementById('gold-type') && document.getElementById('gold-type').value;
+  if (!totalValue || !pricePerBaht || totalValue <= 0 || pricePerBaht <= 0) return;
+
+  // 1 บาททอง = 15.244 กรัม (แท่ง) หรือ 15.16 กรัม (รูปพรรณ)
+  var gramPerBaht = goldType === 'gold_bar' ? 15.244 : 15.16;
+  var bahtWeight = totalValue / pricePerBaht;        // น้ำหนักในหน่วยบาททอง
+  var gramWeight = bahtWeight * gramPerBaht;          // น้ำหนักในกรัม
+
+  document.getElementById('gold-weight-preview').textContent = gramWeight.toFixed(4) + ' กรัม';
+  document.getElementById('gold-baht-preview').textContent = '(' + bahtWeight.toFixed(4) + ' บาททอง)';
+  document.getElementById('gold-preview').style.display = 'block';
+}
+
+function submitGold() {
+  var goldType = document.getElementById('gold-type').value;
+  var date = document.getElementById('gold-date').value;
+  var totalValue = parseFloat(document.getElementById('gold-total-value').value);
+  var pricePerBaht = parseFloat(document.getElementById('gold-buy-price').value);
+
+  if (!date) return toast('กรุณาระบุวันที่', 'error');
+  if (!totalValue || totalValue <= 0) return toast('กรุณากรอกมูลค่าที่ซื้อ', 'error');
+  if (!pricePerBaht || pricePerBaht <= 0) return toast('กรุณากรอกราคาทอง', 'error');
+
+  var gramPerBaht = goldType === 'gold_bar' ? 15.244 : 15.16;
+  var bahtWeight = totalValue / pricePerBaht;
+  var gramWeight = bahtWeight * gramPerBaht;
+
+  var symbol = goldType === 'gold_bar' ? 'GOLD_BAR' : 'GOLD';
+  var name = goldType === 'gold_bar' ? 'ทองคำแท่ง 99.99%' : 'ทองรูปพรรณ 96.5%';
+
+  var existing = db.assets.find(function(a) { return a.symbol === symbol && a.type === 'gold'; });
+  if (!existing) {
+    existing = { id: genId(), symbol: symbol, name: name, type: 'gold', transactions: [] };
+    db.assets.push(existing);
+  }
+  existing.transactions.push({
+    id: genId(),
+    action: 'buy',
+    date: date,
+    totalTHB: totalValue,         // มูลค่าที่จ่ายจริง
+    pricePerBaht: pricePerBaht,   // ราคา ณ วันซื้อ (บาท/บาททอง)
+    bahtWeight: bahtWeight,       // น้ำหนัก (บาททอง)
+    weight: gramWeight,           // น้ำหนัก (กรัม)
+    gramPerBaht: gramPerBaht      // เก็บไว้เผื่อ reference
+  });
+  saveData(db);
+  toast('บันทึกสำเร็จ ✓', 'success');
+  selectType('gold');
+}
+
+function addTransaction(assetInfo, tx) {
+  let asset = db.assets.find(a => a.symbol === assetInfo.symbol && a.type === assetInfo.type);
+  if (!asset) {
+    asset = { id: genId(), symbol: assetInfo.symbol, name: assetInfo.name, type: assetInfo.type, transactions: [] };
+    db.assets.push(asset);
+  }
+  if (!asset.transactions) asset.transactions = [];
+  asset.transactions.push({ id: genId(), ...tx });
+  if (assetInfo.type === 'fund' && tx.nav) asset.lastNav = tx.nav;
+  if (assetInfo.type === 'us_stock' && tx.price) asset.lastPrice = tx.price;
+  saveData(db);
+}
+
+// ============================================================
+// QUICK NAV UPDATE
+// ============================================================
+function quickUpdateNAV(id) {
+  const asset = db.assets.find(a => a.id === id);
+  if (!asset || asset.type !== 'fund') return;
+
+  const modal = document.getElementById('edit-modal');
+  document.getElementById('edit-modal-title').textContent = 'อัปเดต NAV — ' + asset.symbol;
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text2)">
+      NAV ปัจจุบันในระบบ: <strong style="color:var(--text);font-family:var(--mono)">${asset.lastNav || '-'}</strong>
+    </div>
+    <div class="form-group">
+      <label>NAV ใหม่วันนี้</label>
+      <input type="number" id="quick-nav-input" step="0.0001" placeholder="เช่น 35.0001"
+        style="font-size:18px;font-family:var(--mono);font-weight:600;"
+        autofocus>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:-8px;">
+      ดู NAV ล่าสุดได้จากแอปของ บลจ. หรือ Morningstar
+    </div>`;
+
+  document.querySelector('.btn-save').onclick = function() {
+    const newNav = parseFloat(document.getElementById('quick-nav-input').value);
+    if (!newNav || newNav <= 0) return toast('กรุณากรอก NAV', 'error');
+    asset.lastNav = newNav;
+    priceCache[asset.symbol] = newNav;
+    saveData(db);
+    closeEditModal();
+    document.querySelector('.btn-save').onclick = saveEdit;
+    renderList();
+    toast('อัปเดต NAV ' + asset.symbol + ' → ' + newNav + ' ✓', 'success');
+  };
+  modal.classList.add('open');
+}
+
+
+let confirmCallback = null;
+function showConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  confirmCallback = cb;
+  document.getElementById('confirm-ok-btn').onclick = () => { closeConfirm(); cb(); };
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  confirmCallback = null;
+}
+
+// ============================================================
+// DELETE & EDIT
+// ============================================================
+function deleteAsset(id) {
+  showConfirm('ลบสินทรัพย์', 'ต้องการลบสินทรัพย์นี้และรายการทั้งหมดใช่ไหม?', () => {
+    db.assets = db.assets.filter(a => a.id !== id);
+    saveData(db);
+    renderList();
+    toast('ลบสำเร็จ', 'success');
+  });
+}
+
+function openEdit(id) {
+  const asset = db.assets.find(a => a.id === id);
+  if (!asset) return;
+  editContext = { id, asset };
+  const modal = document.getElementById('edit-modal');
+  document.getElementById('edit-modal-title').textContent = 'แก้ไข ' + asset.symbol;
+
+  if (asset.type === 'cash') {
+    document.getElementById('edit-modal-body').innerHTML = `
+      <div class="form-group"><label>ชื่อ</label><input id="edit-name" value="${asset.name||''}"></div>
+      <div class="form-group"><label>จำนวนเงิน (THB)</label><input type="number" id="edit-amount" value="${asset.amountTHB||0}"></div>`;
+  } else {
+    const txs = (asset.transactions||[]);
+    document.getElementById('edit-modal-body').innerHTML = `
+      <div style="margin-bottom:12px">
+        <div class="transactions-title">รายการทั้งหมด (${txs.length})</div>
+        <div class="tx-list" id="edit-tx-list">
+          ${txs.map((tx,i) => `<div class="tx-item">
+            <span class="tx-badge ${tx.action}">${tx.action==='buy'?'ซื้อ':'ขาย'}</span>
+            <span class="tx-info" style="font-size:11px">
+              ${asset.type==='fund' ? tx.valueTHB+' THB @ '+tx.nav : tx.valueUSD+' USD @ $'+tx.price}
+              &nbsp;|&nbsp;${tx.date}
+            </span>
+            <button onclick="deleteTx('${id}','${tx.id}')" style="background:var(--red-dim);color:var(--red);border:none;border-radius:5px;padding:2px 7px;cursor:pointer;font-size:11px">✕</button>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="form-group"><label>อัปเดตราคาปัจจุบัน</label>
+        <input type="number" id="edit-price" placeholder="${asset.type==='fund'?'NAV ใหม่':'ราคาหุ้น USD'}" step="0.0001" value="${asset.type==='fund'?(asset.lastNav||''):(asset.lastPrice||'')}">
+      </div>`;
+  }
+  modal.classList.add('open');
+}
+
+function deleteTx(assetId, txId) {
+  showConfirm('ลบรายการ', 'ต้องการลบรายการนี้ใช่ไหม?', () => {
+    const asset = db.assets.find(a => a.id === assetId);
+    if (!asset) return;
+    asset.transactions = (asset.transactions||[]).filter(t => t.id !== txId);
+    saveData(db);
+    closeEditModal();
+    renderList();
+    toast('ลบรายการสำเร็จ', 'success');
+  });
+}
+
+function saveEdit() {
+  if (!editContext) return;
+  const asset = editContext.asset;
+  if (asset.type === 'cash') {
+    asset.name = document.getElementById('edit-name').value;
+    asset.amountTHB = parseFloat(document.getElementById('edit-amount').value) || 0;
+  } else {
+    const priceVal = parseFloat(document.getElementById('edit-price').value);
+    if (priceVal > 0) {
+      if (asset.type === 'fund') asset.lastNav = priceVal;
+      else asset.lastPrice = priceVal;
+      priceCache[asset.symbol] = priceVal;
+    }
+  }
+  saveData(db);
+  closeEditModal();
+  renderList();
+  toast('แก้ไขสำเร็จ ✓', 'success');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editContext = null;
+}
+
+// Add transaction from detail
+function openAddTx(id) {
+  const asset = db.assets.find(a => a.id === id);
+  if (!asset || asset.type === 'cash') return;
+  editContext = { id, asset };
+  const modal = document.getElementById('edit-modal');
+  document.getElementById('edit-modal-title').textContent = 'เพิ่มรายการ ' + asset.symbol;
+  const today = new Date().toISOString().split('T')[0];
+  if (asset.type === 'fund') {
+    document.getElementById('edit-modal-body').innerHTML = `
+      <div class="form-group"><label>ซื้อ / ขาย</label>
+        <select id="tx-action"><option value="buy">ซื้อ</option><option value="sell">ขาย</option></select></div>
+      <div class="form-group"><label>วันที่</label><input type="date" id="tx-date" value="${today}"></div>
+      <div class="form-group"><label>มูลค่า (THB)</label><input type="number" id="tx-val"></div>
+      <div class="form-group"><label>NAV</label><input type="number" id="tx-nav" step="0.0001" value="${asset.lastNav||''}"></div>`;
+  } else {
+    document.getElementById('edit-modal-body').innerHTML = `
+      <div class="form-group"><label>ซื้อ / ขาย</label>
+        <select id="tx-action"><option value="buy">ซื้อ</option><option value="sell">ขาย</option></select></div>
+      <div class="form-group"><label>วันที่</label><input type="date" id="tx-date" value="${today}"></div>
+      <div class="form-group"><label>มูลค่า (USD)</label><input type="number" id="tx-val" step="0.01"></div>
+      <div class="form-group"><label>ราคา (USD)</label><input type="number" id="tx-price" step="0.01" value="${asset.lastPrice||''}"></div>`;
+  }
+  // Override save button behavior
+  document.querySelector('.btn-save').onclick = saveTx;
+  modal.classList.add('open');
+}
+
+function saveTx() {
+  if (!editContext) return;
+  const asset = editContext.asset;
+  const action = document.getElementById('tx-action').value;
+  const date = document.getElementById('tx-date').value;
+  const val = parseFloat(document.getElementById('tx-val').value);
+  if (!date || !val || val <= 0) return toast('กรุณากรอกข้อมูลให้ครบ', 'error');
+  if (asset.type === 'fund') {
+    const nav = parseFloat(document.getElementById('tx-nav').value);
+    if (!nav || nav <= 0) return toast('กรุณากรอก NAV', 'error');
+    asset.transactions.push({ id: genId(), action, date, valueTHB: val, nav, units: val/nav });
+    asset.lastNav = nav;
+  } else {
+    const price = parseFloat(document.getElementById('tx-price').value);
+    if (!price || price <= 0) return toast('กรุณากรอกราคา', 'error');
+    asset.transactions.push({ id: genId(), action, date, valueUSD: val, price, shares: val/price });
+    asset.lastPrice = price;
+    priceCache[asset.symbol] = price;
+  }
+  saveData(db);
+  closeEditModal();
+  // reset save button
+  document.querySelector('.btn-save').onclick = saveEdit;
+  renderList();
+  toast('บันทึกสำเร็จ ✓', 'success');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = 'toast', 2500);
+}
+
+// ============================================================
+// CLOSE AUTOCOMPLETE ON OUTSIDE CLICK
+// ============================================================
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    document.querySelectorAll('.autocomplete-results').forEach(r => r.classList.remove('open'));
+  }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+const savedTheme = localStorage.getItem('portfolio_theme') || 'dark';
+applyTheme(savedTheme);
+fetchExchangeRate();
+fetchGoldPrice();
+renderList();
+// Fetch stock prices on load (no API key needed)
+fetchAllStockPrices(true);
+// Refresh every 60s
+setInterval(function() {
+  fetchExchangeRate();
+  fetchGoldPrice();
+  fetchAllStockPrices();
+}, 60000);
+</script>
+</body>
+</html>
