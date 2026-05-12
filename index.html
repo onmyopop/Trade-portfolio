@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>พอร์ตลงทุน</title>
+<title>pop go go!</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -416,7 +416,7 @@
   </div>
   <div style="display:flex;gap:6px;align-items:center">
     <div class="sync-status" id="sync-status" title="สถานะ sync"></div>
-    <button class="sync-btn" id="sync-btn" onclick="syncData()" title="Sync ข้อมูล">☁️</button>
+    <button class="sync-btn" id="sync-btn" onclick="openSyncMenu()" title="Sync / ตั้งค่า">☁️</button>
     <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="เปลี่ยนธีม">🌙</button>
   </div>
 </nav>
@@ -542,31 +542,43 @@
   </div>
 </div>
 
-<!-- GIST SETUP MODAL -->
+<!-- SYNC MENU MODAL -->
 <div class="modal-overlay" id="gist-setup-modal">
   <div class="modal">
-    <h3>☁️ ตั้งค่า Sync ด้วย GitHub Gist</h3>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
-      ข้อมูลจะถูกเก็บใน GitHub Gist ของคุณ เปิดได้ทุก device
-    </p>
-    <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.8;">
-      <strong style="color:var(--text)">วิธีสร้าง Token:</strong><br>
-      1. ไปที่ <strong>github.com → Settings → Developer settings</strong><br>
-      2. Personal access tokens → <strong>Tokens (classic)</strong><br>
-      3. Generate new token → ติ๊ก <strong>gist</strong> เท่านั้น<br>
-      4. Copy token มาวางด้านล่าง
-    </div>
+    <h3>☁️ Sync ข้อมูล</h3>
+
+    <!-- Status bar -->
+    <div id="sync-info-bar" style="margin-bottom:16px;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.7;"></div>
+
+    <!-- Token -->
     <div class="form-group">
       <label>GitHub Personal Access Token</label>
       <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxx">
     </div>
+
+    <!-- Gist ID -->
     <div class="form-group">
-      <label>Gist ID <span style="color:var(--text3);font-weight:400">(ถ้ามีอยู่แล้ว ใส่เพื่อ sync กับ Gist เดิม)</span></label>
+      <label>Gist ID <span style="color:var(--text3);font-weight:400">(ใส่เพื่อ sync กับ Gist เดิม)</span></label>
       <input type="text" id="gist-id-input" placeholder="เช่น 656b6871ae27206a7828bd411460e4f1" style="font-family:var(--mono);font-size:12px;">
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeGistSetup()">ยกเลิก</button>
-      <button class="btn-save" onclick="saveGistToken()">บันทึกและ Sync</button>
+
+    <!-- Actions -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+      <button onclick="saveGistToken()" style="width:100%;padding:13px;background:var(--green);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);">
+        💾 บันทึกและ Sync
+      </button>
+      <button onclick="syncDataOnly()" id="sync-only-btn" style="width:100%;padding:13px;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(77,159,255,0.3);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);">
+        🔄 Sync เดี๋ยวนี้
+      </button>
+      <button onclick="closeGistSetup()" style="width:100%;padding:12px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-size:14px;cursor:pointer;font-family:var(--sans);">
+        ปิด
+      </button>
+    </div>
+
+    <!-- Help -->
+    <div style="margin-top:14px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text3);line-height:1.7;">
+      <strong style="color:var(--text2)">วิธีสร้าง Token:</strong><br>
+      github.com → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate → ติ๊ก <strong>gist</strong>
     </div>
   </div>
 </div>
@@ -1832,12 +1844,38 @@ function setSyncBtnSpin(on) {
   else btn.classList.remove('syncing');
 }
 
-function openGistSetup() {
+function openSyncMenu() {
   var inp = document.getElementById('gist-token-input');
   var gistInp = document.getElementById('gist-id-input');
+  var syncOnlyBtn = document.getElementById('sync-only-btn');
   if (inp && gistToken) inp.value = gistToken;
   if (gistInp && gistId) gistInp.value = gistId;
+
+  // Update status bar
+  var bar = document.getElementById('sync-info-bar');
+  if (bar) {
+    if (gistToken && gistId) {
+      var lastSync = db.updatedAt ? new Date(db.updatedAt).toLocaleString('th-TH') : 'ไม่เคย';
+      bar.style.background = 'var(--green-dim)';
+      bar.style.border = '1px solid rgba(0,212,160,0.2)';
+      bar.innerHTML = '🟢 <strong style="color:var(--green)">เชื่อมต่อแล้ว</strong><br>' +
+        '<span style="color:var(--text2)">Gist ID: <span style="font-family:var(--mono)">' + gistId.slice(0,8) + '...</span></span><br>' +
+        '<span style="color:var(--text3)">Sync ล่าสุด: ' + lastSync + '</span>';
+      if (syncOnlyBtn) syncOnlyBtn.style.display = 'block';
+    } else {
+      bar.style.background = 'var(--gold-dim)';
+      bar.style.border = '1px solid rgba(245,200,66,0.3)';
+      bar.innerHTML = '⚠️ <strong style="color:var(--gold)">ยังไม่ได้ตั้งค่า</strong><br>' +
+        '<span style="color:var(--text2)">ใส่ Token และ Gist ID เพื่อเริ่มใช้งาน</span>';
+      if (syncOnlyBtn) syncOnlyBtn.style.display = 'none';
+    }
+  }
   document.getElementById('gist-setup-modal').classList.add('open');
+}
+
+async function syncDataOnly() {
+  closeGistSetup();
+  await syncData();
 }
 
 function closeGistSetup() {
